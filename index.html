@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>M&P Robotix — VEX IQ PD Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:          #F0EBE3;
+      --cream-dark:     #E8E0D6;
+      --cream-deeper:   #DDD4C8;
+      --sidebar-bg:     #2C2825;
+      --sidebar-text:   #C4B9AD;
+      --sidebar-dim:    #7A6F67;
+      --sidebar-hover:  #EDE6DC;
+      --coral:          #C96A4A;
+      --coral-light:    #D4836A;
+      --coral-dim:      #A0543A;
+      --text:           #1C1917;
+      --text-mid:       #44403C;
+      --text-dim:       #78716C;
+      --text-dimmer:    #A8A29E;
+      --border:         rgba(28,25,23,0.10);
+      --border-mid:     rgba(28,25,23,0.07);
+      --surface:        #F8F3EE;
+      --surface-raised: #FBF7F3;
+      --code-bg:        #EDE6DC;
+      --green:          #4F8A62;
+      --red:            #B94040;
+      --amber:          #9A6A28;
+      --serif:          'Newsreader', Georgia, serif;
+      --sans:           'DM Sans', system-ui, sans-serif;
+      --mono:           'DM Mono', 'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ───── SIDEBAR ───── */
+    .sidenav {
+      position: fixed;
+      top: 0; left: 0;
+      width: 240px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 100;
+    }
+
+    .sidenav-header {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+
+    .sidenav-wordmark {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 13.5px;
+      color: var(--sidebar-hover);
+      margin-bottom: 2px;
+    }
+
+    .sidenav-subtitle {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--sidebar-dim);
+    }
+
+    .sidenav-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 0 24px;
+    }
+
+    .sidenav-body::-webkit-scrollbar { width: 3px; }
+    .sidenav-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+
+    .nav-group-label {
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--sidebar-dim);
+      padding: 16px 20px 6px;
+    }
+
+    .sidenav a {
+      display: flex;
+      align-items: center;
+      padding: 7px 20px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      transition: color .15s, background .15s;
+      position: relative;
+      border-bottom: none;
+    }
+
+    .sidenav a::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 5px; bottom: 5px;
+      width: 2px;
+      background: var(--coral);
+      border-radius: 0 2px 2px 0;
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .sidenav a:hover {
+      color: var(--sidebar-hover);
+      background: rgba(255,255,255,0.04);
+      border-bottom: none;
+    }
+
+    .sidenav a.active {
+      color: #EDE6DC;
+      background: rgba(201,106,74,0.12);
+    }
+
+    .sidenav a.active::before { opacity: 1; }
+
+    .sidenav-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--sidebar-dim);
+    }
+
+    /* ───── MAIN ───── */
+    .main { margin-left: 240px; min-height: 100vh; }
+
+    /* ───── HERO ───── */
+    .hero {
+      padding: 72px 72px 64px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-raised);
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--coral);
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: clamp(36px, 4.5vw, 56px);
+      line-height: 1.1;
+      color: var(--text);
+      max-width: 680px;
+      margin-bottom: 20px;
+      letter-spacing: -.01em;
+    }
+
+    .hero h1 em { font-style: italic; color: var(--coral); }
+
+    .hero-desc {
+      font-size: 15.5px;
+      color: var(--text-mid);
+      max-width: 540px;
+      margin-bottom: 40px;
+      line-height: 1.65;
+    }
+
+    .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .pill {
+      background: var(--cream-dark);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 5px 13px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-mid);
+    }
+
+    .pill strong { color: var(--text); font-weight: 500; }
+
+    /* ───── VIDEO ───── */
+    .video-wrap { border-bottom: 1px solid var(--border); }
+
+    .media-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 72px;
+      background: var(--cream-dark);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .media-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--coral);
+      opacity: .5;
+    }
+
+    .media-bar span {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .video-placeholder {
+      aspect-ratio: 16/9;
+      max-height: 420px;
+      background: #1E1A18;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .play-ring {
+      width: 56px; height: 56px;
+      border: 1.5px solid rgba(201,106,74,.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-ring svg { width: 18px; height: 18px; fill: rgba(201,106,74,.7); margin-left: 3px; }
+    .video-placeholder p { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.2); }
+
+    /* ───── SECTIONS ───── */
+    section {
+      padding: 60px 72px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 30px;
+      color: var(--text);
+      margin-bottom: 24px;
+      line-height: 1.2;
+      letter-spacing: -.01em;
+    }
+
+    h3 {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 13.5px;
+      color: var(--text);
+      margin: 30px 0 10px;
+    }
+
+    h3:first-of-type { margin-top: 0; }
+
+    p { color: var(--text-mid); margin-bottom: 14px; }
+    p:last-child { margin-bottom: 0; }
+
+    a {
+      color: var(--coral);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(201,106,74,.3);
+      transition: color .15s, border-color .15s;
+    }
+
+    a:hover { color: var(--coral-light); border-color: var(--coral-light); }
+
+    /* ───── CALLOUTS ───── */
+    .callout {
+      border: 1px solid rgba(201,106,74,.2);
+      background: rgba(201,106,74,.04);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 22px 0;
+    }
+
+    .callout.warning {
+      border-color: rgba(185,64,64,.2);
+      background: rgba(185,64,64,.04);
+    }
+
+    .callout.good {
+      border-color: rgba(79,138,98,.2);
+      background: rgba(79,138,98,.04);
+    }
+
+    .callout-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--coral);
+      margin-bottom: 8px;
+    }
+
+    .callout.warning .callout-label { color: var(--red); }
+    .callout.good    .callout-label { color: var(--green); }
+    .callout p { margin: 0; font-size: 14px; }
+
+    /* ───── CODE ───── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 22px;
+      overflow-x: auto;
+      margin: 18px 0;
+      position: relative;
+    }
+
+    .code-lang {
+      position: absolute;
+      top: 11px; right: 16px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    p code, li code, td code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: var(--text);
+    }
+
+    /* ───── TABLE ───── */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 22px 0;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-align: left;
+      padding: 11px 18px;
+      background: var(--cream-dark);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-mid);
+      color: var(--text-mid);
+    }
+
+    td:first-child { font-family: var(--mono); font-size: 12.5px; color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(28,25,23,.02); }
+
+    /* ───── PHOTO GRID ───── */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin: 22px 0;
+    }
+
+    .photo-slot {
+      border: 1.5px dashed var(--cream-deeper);
+      border-radius: 8px;
+      aspect-ratio: 4/3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--cream-dark);
+    }
+
+    .photo-slot svg {
+      width: 24px; height: 24px;
+      stroke: var(--text-dimmer);
+      fill: none;
+      stroke-width: 1.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .photo-slot p {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--text-dimmer);
+      margin: 0;
+      text-align: center;
+      padding: 0 18px;
+    }
+
+    /* ───── FORMULA ───── */
+    .formula {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 32px;
+      margin: 22px 0;
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: .03em;
+    }
+
+    .formula .hi { color: var(--coral); }
+
+    /* ───── STEPS ───── */
+    .steps { list-style: none; counter-reset: step; margin: 22px 0; }
+
+    .steps > li {
+      counter-increment: step;
+      display: flex;
+      gap: 18px;
+      margin-bottom: 22px;
+      align-items: flex-start;
+    }
+
+    .steps > li:last-child { margin-bottom: 0; }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      background: var(--cream-dark);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--coral);
+      margin-top: 3px;
+    }
+
+    .step-num::after { content: counter(step); }
+    .step-body { flex: 1; }
+
+    .step-title {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .step-body p { font-size: 13.5px; margin: 0; color: var(--text-dim); }
+
+    /* ───── FUNCTION CARDS ───── */
+    .fn-grid { display: grid; gap: 10px; margin: 22px 0; }
+
+    .fn-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      transition: border-color .15s;
+    }
+
+    .fn-card:hover { border-color: rgba(201,106,74,.4); }
+
+    .fn-sig {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .fn-sig .fn-name { color: var(--coral); }
+    .fn-desc { font-size: 13.5px; color: var(--text-dim); margin: 0; }
+
+    /* ───── DIAGRAMS ───── */
+    .diagram-group { display: grid; gap: 10px; margin: 22px 0; }
+
+    .diagram {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 20px 22px 16px;
+    }
+
+    .diagram-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 14px;
+    }
+
+    .diagram-canvas {
+      height: 80px;
+      position: relative;
+      border-left: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .diagram-canvas svg {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      overflow: visible;
+    }
+
+    .diagram-note { font-size: 12.5px; color: var(--text-dim); margin: 0; }
+
+    /* ───── SOURCE REQUEST BANNER ───── */
+    .source-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      margin: 22px 0;
+    }
+
+    .source-banner-text { flex: 1; min-width: 200px; }
+
+    .source-banner-text strong {
+      display: block;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .source-banner-text span {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .source-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--coral);
+      color: #fff !important;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background .15s;
+      cursor: pointer;
+    }
+
+    .source-btn:hover { background: var(--coral-light) !important; border: none; color: #fff !important; }
+
+    /* ───── REFS ───── */
+    .ref-list { list-style: none; margin: 16px 0; }
+
+    .ref-list li {
+      display: flex;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border-mid);
+      font-size: 14px;
+    }
+
+    .ref-list li:last-child { border-bottom: none; }
+
+    .ref-num { font-family: var(--mono); font-size: 10.5px; color: var(--text-dimmer); padding-top: 2px; flex-shrink: 0; }
+    .ref-title { display: block; color: var(--text); margin-bottom: 3px; }
+    .ref-source { font-family: var(--mono); font-size: 10.5px; color: var(--text-dimmer); }
+
+    /* ───── FOOTER ───── */
+    .page-footer {
+      margin-left: 240px;
+      border-top: 1px solid var(--border);
+      background: var(--cream-dark);
+      padding: 24px 72px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .footer-name { font-size: 13px; color: var(--text-dim); }
+    .footer-name a { color: var(--text-dim); border-color: transparent; }
+    .footer-name a:hover { color: var(--coral); border-color: transparent; }
+    .footer-license { font-family: var(--mono); font-size: 10.5px; color: var(--text-dimmer); }
+
+    /* ───── SCROLLBAR ───── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--cream-deeper); border-radius: 99px; }
+
+    /* ───── RESPONSIVE ───── */
+    @media (max-width: 880px) {
+      .sidenav { display: none; }
+      .main, .page-footer { margin-left: 0; }
+      section, .hero { padding-left: 24px; padding-right: 24px; }
+      .media-bar { padding-left: 24px; padding-right: 24px; }
+      .page-footer { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidenav">
+  <div class="sidenav-header">
+    <div class="sidenav-wordmark">M&amp;P Robotix</div>
+    <div class="sidenav-subtitle">VEX IQ — PD Controller</div>
+  </div>
+
+  <div class="sidenav-body">
+    <div class="nav-group-label">Introduction</div>
+    <a href="#overview">Overview</a>
+    <a href="#concept">What is PD Control</a>
+
+    <div class="nav-group-label">Setup</div>
+    <a href="#hardware">Hardware Configuration</a>
+    <a href="#motor-check">Motor Direction Check</a>
+
+    <div class="nav-group-label">Calibration</div>
+    <a href="#tuning-kp">Tuning Kp</a>
+    <a href="#tuning-kd">Tuning Kd</a>
+
+    <div class="nav-group-label">Reference</div>
+    <a href="#api">Function Reference</a>
+    <a href="#implementation">Implementation Details</a>
+    <a href="#getting-started">Getting Started</a>
+    <a href="#references">Further Reading</a>
+  </div>
+
+  <div class="sidenav-footer">MIT License &mdash; Philobatir Nabil</div>
+</nav>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<div class="main">
+
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <div class="hero-eyebrow">M&amp;P Robotix / VEX IQ</div>
+    <h1>PD Controller for <em>Autonomous</em> Drive</h1>
+    <p class="hero-desc">
+      A proportional-derivative control loop providing smooth heading correction
+      and precise straight-line driving for first-generation VEX IQ robots.
+      Written in C++ for VEXcode IQ.
+    </p>
+    <div class="hero-pills">
+      <span class="pill"><strong>Type</strong>&ensp;Proportional-Derivative</span>
+      <span class="pill"><strong>Platform</strong>&ensp;VEX IQ Gen 1</span>
+      <span class="pill"><strong>Language</strong>&ensp;C++ / VEXcode IQ</span>
+      <span class="pill"><strong>Loop rate</strong>&ensp;50 Hz</span>
+    </div>
+  </div>
+
+  <!-- DEMO VIDEO -->
+  <div class="video-wrap">
+    <div class="media-bar">
+      <div class="media-dot"></div>
+      <span>Demo — Autonomous Run</span>
+    </div>
+    <!--
+      ═══ REPLACE THIS BLOCK WITH YOUR VIDEO ═══
+
+      YouTube:
+        <iframe width="100%" style="aspect-ratio:16/9;display:block;border:none"
+          src="https://www.youtube.com/embed/YOUR_VIDEO_ID" allowfullscreen></iframe>
+
+      Local file (upload demo.mp4 to the repo root):
+        <video src="demo.mp4" controls style="width:100%;display:block;"></video>
+
+      ══════════════════════════════════════════
+    -->
+    <div class="video-placeholder">
+      <div class="play-ring">
+        <svg viewBox="0 0 24 24"><polygon points="6,3 20,12 6,21"/></svg>
+      </div>
+      <p>Replace with your demo video</p>
+    </div>
+  </div>
+
+  <!-- CONCEPT -->
+  <section id="concept">
+    <div class="eyebrow">Concept</div>
+    <h2>What is a PD Controller?</h2>
+    <p>
+      A PD controller is a feedback loop that continuously measures the gap between
+      where the robot is and where it should be — the <em>error</em> — and computes
+      a corrective output each cycle. Two terms work together to do this:
+    </p>
+    <div class="formula">
+      velocity = (error &times; <span class="hi">Kp</span>) + ((error &minus; prevError) &times; <span class="hi">Kd</span>)
+    </div>
+
+    <h3>Proportional term — Kp</h3>
+    <p>
+      Scales the correction proportionally to the current error. A 10° heading
+      deviation produces twice the correction of a 5° deviation. The robot always
+      pushes toward its target in direct proportion to how far off course it is.
+    </p>
+
+    <h3>Derivative term — Kd</h3>
+    <p>
+      Looks at the <em>rate of change</em> of error between cycles. When the robot
+      is converging fast on its target, Kd applies a braking force to prevent overshoot.
+      This is what transforms oscillation into a smooth, settled approach.
+    </p>
+
+    <div class="callout">
+      <div class="callout-label">Why not PID?</div>
+      <p>
+        Omitting the integral term eliminates integral windup — where accumulated error
+        causes overcorrection after a long drive. On smooth VEX IQ surfaces, PD is
+        sufficient and considerably easier to tune.
+      </p>
+    </div>
+  </section>
+
+  <!-- HARDWARE -->
+  <section id="hardware">
+    <div class="eyebrow">Setup — Step 1</div>
+    <h2>Hardware Configuration</h2>
+
+    <!--
+      ═══ REPLACE PHOTO SLOTS ═══
+      Swap each <div class="photo-slot">...</div> with:
+      <img src="images/your-photo.jpg" alt="description"
+           style="width:100%;border-radius:8px;display:block;">
+      ═══════════════════════════
+    -->
+    <div class="photo-grid">
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        <p>images/robot-top.jpg</p>
+      </div>
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+        <p>images/robot-wiring.jpg</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Port</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Right Motor</td><td>8</td><td>Default direction</td></tr>
+          <tr><td>Left Motor</td><td>7</td><td>Initialized with <code>true</code> — reversed, mirrored mount</td></tr>
+          <tr><td>Arm Motor A</td><td>9</td><td></td></tr>
+          <tr><td>Arm Motor B</td><td>10</td><td></td></tr>
+          <tr><td>M_180 Motor</td><td>1</td><td></td></tr>
+          <tr><td>Kamasha Motor</td><td>4</td><td></td></tr>
+          <tr><td>Gyroscope</td><td>2</td><td>Slow calibration at startup; resets to 0°</td></tr>
+          <tr><td>TouchLED</td><td>3</td><td>Red during calibration, green when ready</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MOTOR DIRECTION -->
+  <section id="motor-check">
+    <div class="eyebrow">Setup — Step 2 — Critical</div>
+    <h2>Verifying Motor Direction Before Anything Else</h2>
+    <p>
+      Before writing a single line of autonomous code, confirm that commanding each
+      motor <em>forward</em> actually moves the robot forward. A reversed motor is
+      indistinguishable from a miscalibrated PD gain during tuning — you will spend
+      hours chasing a problem that does not exist.
+    </p>
+
+    <div class="callout warning">
+      <div class="callout-label">Do this first</div>
+      <p>Do not skip this step. All calibration in the next stages assumes both motors are already oriented correctly.</p>
+    </div>
+
+    <h3>The test procedure</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Decide which end is the front</div>
+          <p>Choose one end of the robot and commit to it. Everything else depends on this definition.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Test the right motor in isolation</div>
+          <p>Write a minimal program that spins only the right motor forward at 50% for one second. With the robot's front facing away from you, the right wheel should turn such that the robot would travel forward.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Test the left motor in isolation</div>
+          <p>Repeat for the left motor. The left wheel should also drive the robot forward when commanded forward.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Reverse a motor in code if needed</div>
+          <p>Pass <code>true</code> as the second constructor argument. The left motor in this project is already reversed due to its mirrored mounting orientation.</p>
+        </div>
+      </li>
+    </ol>
+
+    <pre><code><span class="code-lang">C++ / VEXcode IQ</span>
+motor rightMotor = motor(PORT8, false);  // not reversed
+motor leftMotor  = motor(PORT7, true);   // reversed — mirrored mount</code></pre>
+
+    <div class="photo-grid">
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <p>images/motor-right.jpg</p>
+      </div>
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <p>images/motor-left.jpg</p>
+      </div>
+    </div>
+
+    <div class="callout good">
+      <div class="callout-label">Ready to proceed when</div>
+      <p>Both motors, commanded forward individually, drive the robot in the direction you defined as forward. Only then should you move on to gyroscope calibration and PD tuning.</p>
+    </div>
+  </section>
+
+  <!-- TUNING Kp -->
+  <section id="tuning-kp">
+    <div class="eyebrow">Calibration — Step 3</div>
+    <h2>Tuning the Proportional Gain, Kp</h2>
+    <p>
+      Kp is the first and only constant you touch in this stage. Set Kd to zero and
+      leave it there until Kp is stable. Tuning both simultaneously makes it impossible
+      to isolate which term is causing a given behavior.
+    </p>
+
+    <h3>What Kp does</h3>
+    <p>
+      Every loop, the controller multiplies the current heading error in degrees by Kp
+      to produce a corrective velocity. If Kp is 1.0 and the robot is 5° off course,
+      it applies a 5% velocity differential between the two motors. At Kp 3.0, the same
+      5° error produces a 15% differential.
+    </p>
+
+    <h3>Starting procedure</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Set Kd to zero</div>
+          <p>Isolate Kp completely. Only the proportional term should be active.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Start at Kp = 0.5</div>
+          <p>Run a 1-meter straight drive. Observe whether the robot corrects slowly, promptly, or not at all.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Raise in increments of 0.5</div>
+          <p>After each increment, run the test again. Stop when the robot corrects promptly but has not started oscillating.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Lock in just below oscillation</div>
+          <p>Find the exact point where oscillation begins, step back by 0.5, and record this value. You will not change it again.</p>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Diagnosing Kp behavior</h3>
+
+    <div class="diagram-group">
+      <div class="diagram">
+        <div class="diagram-label">Kp too low — robot drifts, correction is slow</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 70,65 150,55 230,46 310,38 380,32 400,30" fill="none" stroke="#A8A29E" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Robot creeps toward target heading but never arrives cleanly. Raise Kp.</p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-label">Kp correct — clean approach, heading holds</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 28,44 56,24 82,18 130,18 240,18 400,18" fill="none" stroke="#4F8A62" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Robot converges firmly and holds the heading. This is the target behavior.</p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-label">Kp too high — robot oscillates around heading</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 18,2 44,34 70,8 96,28 122,12 150,22 180,16 220,18 280,18 400,18" fill="none" stroke="#B94040" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Robot swings past heading and overcorrects repeatedly. Step back, then add Kd.</p>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-label">Common mistake</div>
+      <p>Raising Kp past the oscillation threshold and concluding the controller is broken. Oscillation at high Kp is expected — it means you have gone too far. Step back and move on to Kd tuning.</p>
+    </div>
+
+    <pre><code><span class="code-lang">C++ — Proportional only, Kd = 0</span>
+float error      = targetAngle - gyro.angle();
+float correction = error * Kp;    // tune this first; Kd = 0
+
+rightMotor.spin(fwd, speed + correction, pct);
+leftMotor.spin(fwd,  speed - correction, pct);</code></pre>
+  </section>
+
+  <!-- TUNING Kd -->
+  <section id="tuning-kd">
+    <div class="eyebrow">Calibration — Step 4</div>
+    <h2>Tuning the Derivative Gain, Kd</h2>
+    <p>
+      Once Kp is locked in, Kd handles the remaining oscillation by damping the
+      controller's response as error collapses. Always tune Kd second.
+    </p>
+
+    <h3>What Kd does</h3>
+    <p>
+      Kd multiplies the change in error between the current and previous loop cycle.
+      When the robot is converging rapidly, error is falling fast — Kd produces a
+      braking output that opposes the overshoot before it happens. Think of it as a
+      shock absorber that resists sudden change.
+    </p>
+
+    <h3>Starting procedure</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Restore the Kp you locked in</div>
+          <p>Use the value from the previous stage, at or just below where oscillation appeared.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Start at Kd = 0.05</div>
+          <p>Run the same straight-drive test. Oscillation should reduce noticeably even at this small value.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Raise in increments of 0.05–0.1</div>
+          <p>Keep raising until oscillation disappears and the robot settles cleanly on its heading.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Stop before the robot becomes sluggish</div>
+          <p>Over-damping is when Kd is so large that derivative braking overpowers the proportional drive. Reduce slightly until both responsiveness and stability are good.</p>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Diagnosing Kd behavior</h3>
+
+    <div class="diagram-group">
+      <div class="diagram">
+        <div class="diagram-label">Kd too low — oscillation persists</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 18,2 44,34 70,8 96,28 122,12 150,22 180,16 220,18 280,18 400,18" fill="none" stroke="#B94040" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Not enough damping. Continue raising Kd incrementally.</p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-label">Kd correct — fast, clean settling</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 26,38 54,22 80,18 130,18 240,18 400,18" fill="none" stroke="#4F8A62" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Robot approaches and holds the heading with no oscillation. Optimal.</p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-label">Kd too high — over-damped, sluggish response</div>
+        <div class="diagram-canvas">
+          <svg viewBox="0 0 400 80" preserveAspectRatio="none">
+            <line x1="0" y1="18" x2="400" y2="18" stroke="rgba(154,106,40,0.25)" stroke-width="1" stroke-dasharray="4,4"/>
+            <polyline points="0,74 60,62 130,50 200,40 270,30 330,22 380,19 400,18" fill="none" stroke="#9A6A28" stroke-width="2"/>
+          </svg>
+        </div>
+        <p class="diagram-note">Robot barely reacts to heading changes. Derivative braking is overwhelming proportional drive.</p>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-label">Common mistake</div>
+      <p>Using Kd to compensate for a Kp that is too high. If oscillation is severe, reduce Kp first, then add Kd. Kd cannot fully counteract a wildly oversized Kp.</p>
+    </div>
+
+    <pre><code><span class="code-lang">C++ — Full PD loop</span>
+float error      = targetAngle - gyro.angle();
+float derivative = error - previousError;
+float correction = (error * Kp) + (derivative * Kd);
+
+rightMotor.spin(fwd, speed + correction, pct);
+leftMotor.spin(fwd,  speed - correction, pct);
+
+previousError = error;</code></pre>
+  </section>
+
+  <!-- FUNCTION REFERENCE -->
+  <section id="api">
+    <div class="eyebrow">Reference</div>
+    <h2>Function Reference</h2>
+
+    <div class="fn-grid">
+      <div class="fn-card">
+        <div class="fn-sig">void <span class="fn-name">pivotRightToAngle</span>(float targetAngle)</div>
+        <p class="fn-desc">Pivots around the stationary right wheel until the gyroscope reads <code>targetAngle</code>. The left wheel drives; the right wheel holds.</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-sig">void <span class="fn-name">pivotLeftToAngle</span>(float targetAngle)</div>
+        <p class="fn-desc">Pivots around the stationary left wheel. The right wheel drives; the left wheel holds. Produces a tighter inside radius on left turns.</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-sig">void <span class="fn-name">spinToAngle</span>(float targetAngle)</div>
+        <p class="fn-desc">Point turn — both wheels counter-rotate simultaneously. Fastest heading change; robot pivots around its own center.</p>
+      </div>
+      <div class="fn-card">
+        <div class="fn-sig">void <span class="fn-name">driveStraight</span>(float speed, float targetDistanceDegrees, float targetAngle)</div>
+        <p class="fn-desc">Drives both motors at <code>speed</code> while applying PD heading correction against <code>targetAngle</code>. Exits once drive motors have traveled <code>targetDistanceDegrees</code> of rotation for 5 consecutive cycles.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- IMPLEMENTATION -->
+  <section id="implementation">
+    <div class="eyebrow">Reference — Implementation</div>
+    <h2>Implementation Details</h2>
+
+    <h3>Differential correction in driveStraight</h3>
+    <p>
+      Both motors are driven at a constant base speed. Each loop, the heading correction
+      is applied in opposite directions. If the robot drifts right, the right motor speeds
+      up and the left slows down, nudging the robot back on course.
+    </p>
+
+    <pre><code><span class="code-lang">Concept</span>
+rightVelocity = speed + headingCorrection
+leftVelocity  = speed - headingCorrection</code></pre>
+
+    <h3>Angle normalization</h3>
+    <p>
+      All angular errors are wrapped to <strong>−180° to +180°</strong>. Without this,
+      a robot at 350° heading for 10° might compute a 340° error — the long way — instead
+      of the correct 20° short path.
+    </p>
+
+    <pre><code><span class="code-lang">C++</span>
+while (error >  180) error -= 360;
+while (error < -180) error += 360;</code></pre>
+
+    <h3>Settled count</h3>
+    <p>
+      Every function requires the robot to remain within the tolerance band for
+      <strong>5 consecutive loop cycles</strong> before stopping. This prevents a single
+      noisy gyroscope reading from triggering a false exit.
+    </p>
+
+    <h3>Motor settings</h3>
+    <p>
+      All velocities are clamped to <code>[-100, +100]%</code>. All motors use
+      <code>hold</code> braking mode, which actively resists movement after stopping —
+      important for maintaining position between autonomous actions.
+    </p>
+
+    <h3>Startup sequence</h3>
+    <ol class="steps">
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">TouchLED turns red</div>
+          <p>Calibration in progress. Do not move the robot.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Gyroscope slow calibration</div>
+          <p><code>calSlow</code> gives the gyroscope more time to self-zero. Robot must remain completely still.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Gyroscope resets to 0°</div>
+          <p>Current physical orientation becomes the zero reference for all heading calculations.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">TouchLED turns green</div>
+          <p>All systems calibrated. Place robot in starting position before pressing.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Press TouchLED to start</div>
+          <p>The autonomous routine inside <code>route()</code> begins executing.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- GETTING STARTED -->
+  <section id="getting-started">
+    <div class="eyebrow">Usage</div>
+    <h2>Getting Started</h2>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Open VEXcode IQ and create a new C++ project</div>
+          <p>File → New Project → C++ Template.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Source code — restricted access</div>
+          <p>
+            The full C++ implementation is private. Access is granted exclusively
+            to M&amp;P Robotix coaches. Please do not attempt to request or obtain
+            the source outside of that context.
+          </p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Verify motor directions</div>
+          <p>Follow the Motor Direction Check section above. This step is not optional.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Tune Kp, then Kd</div>
+          <p>Follow the calibration sections in order. Rushing this stage produces unreliable autonomous runs.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Write your autonomous route</div>
+          <p>Add your sequence of calls inside the <code>route()</code> function.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num"></div>
+        <div class="step-body">
+          <div class="step-title">Download, place robot, wait for green, press TouchLED</div>
+          <p>The green light confirms calibration is complete. Only press once the robot is in its starting position.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="photo-grid">
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <p>images/vexcode-screenshot.jpg</p>
+      </div>
+      <div class="photo-slot">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+        <p>images/touchled-green.jpg</p>
+      </div>
+    </div>
+
+    <!-- SOURCE CODE REQUEST BANNER -->
+    <div class="source-banner callout warning">
+      <div class="callout-label">Restricted access</div>
+      <p>
+        The full C++ implementation is private and is not publicly available.
+        Access is granted exclusively to M&amp;P Robotix coaches. Please do not
+        attempt to request or obtain the source outside of that context.
+      </p>
+    </div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="references">
+    <div class="eyebrow">Further Reading</div>
+    <h2>References and Documentation</h2>
+    <p>
+      The following resources cover the theory and platform details behind this project
+      in greater depth. Recommended before modifying core controller logic.
+    </p>
+
+    <ul class="ref-list">
+      <li>
+        <span class="ref-num">[1]</span>
+        <div>
+          <a class="ref-title" href="https://www.vexrobotics.com/vexcode" target="_blank" rel="noopener">VEXcode IQ — Official IDE Documentation</a>
+          <span class="ref-source">vexrobotics.com — API reference, motor/sensor constructors, braking modes</span>
+        </div>
+      </li>
+      <li>
+        <span class="ref-num">[2]</span>
+        <div>
+          <a class="ref-title" href="https://en.wikipedia.org/wiki/PID_controller" target="_blank" rel="noopener">PID Controller — Wikipedia</a>
+          <span class="ref-source">en.wikipedia.org — Mathematical background, P, I, and D terms explained</span>
+        </div>
+      </li>
+      <li>
+        <span class="ref-num">[3]</span>
+        <div>
+          <a class="ref-title" href="https://api.vexcode.cloud/v5/" target="_blank" rel="noopener">VEX C++ API Reference</a>
+          <span class="ref-source">api.vexcode.cloud — Full method listings for motor, gyro, and brain objects</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer class="page-footer">
+  <div class="footer-name">
+    Philobatir Nabil &mdash; M&amp;P Robotix &mdash;
+    <a href="mailto:philobatir.nabil@proton.me">philobatir.nabil@proton.me</a>
+  </div>
+  <div class="footer-license">Source code — restricted to M&amp;P Robotix coaches</div>
+</footer>
+
+<script>
+  const anchors  = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('.sidenav a[href^="#"]');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const m = document.querySelector(`.sidenav a[href="#${e.target.id}"]`);
+        if (m) m.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+
+  anchors.forEach(a => obs.observe(a));
+</script>
+</body>
+</html>
